@@ -38,17 +38,18 @@ let BROWSER = null;
 async function getBrowser() {
   if (BROWSER) return BROWSER;
   BROWSER = await puppeteer.launch({
-    headless: "new",
+    headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--no-zygote",
-      "--single-process",
     ],
-    // Render fournit souvent CHROME_PATH via Puppeteer install
-    executablePath: process.env.CHROME_PATH || undefined,
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH ||
+      process.env.CHROME_PATH ||
+      undefined,
     defaultViewport: { width: 1280, height: 900 },
   });
   BROWSER.on("disconnected", () => {
@@ -139,12 +140,10 @@ app.get("/health", async (req, res) => {
 app.post("/run", async (req, res) => {
   const { script, timeout = 60000 } = req.body || {};
   if (!script) {
-    return res
-      .status(400)
-      .json({
-        status: "error",
-        error: { message: 'Le champ "script" est requis' },
-      });
+    return res.status(400).json({
+      status: "error",
+      error: { message: 'Le champ "script" est requis' },
+    });
   }
   await executeScript(script, timeout, res);
 });

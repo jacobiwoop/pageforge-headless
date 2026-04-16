@@ -1,9 +1,9 @@
 FROM ghcr.io/puppeteer/puppeteer:latest
 
 # Environnement pour Puppeteer: on force l'utilisation du Chrome inclus dans l'image
-ENV CHROME_PATH=/usr/bin/google-chrome-stable \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+
 
 # Le user 'pptruser' est déjà créé par l'image officielle
 WORKDIR /home/pptruser/app
