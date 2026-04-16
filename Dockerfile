@@ -1,23 +1,49 @@
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Utiliser l'image Node.js officielle
+FROM node:18-bullseye-slim
 
-# Environnement pour Puppeteer: on force l'utilisation du Chrome inclus dans l'image
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+# Installer les dépendances système pour Puppeteer
+RUN apt-get update && apt-get install -y \
+    wget \
+    ca-certificates \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
+    libxss1 \
+    libxtst6 \
+    && rm -rf /var/lib/apt/lists/*
 
+# Définir le répertoire de travail
+WORKDIR /app
 
-# Le user 'pptruser' est déjà créé par l'image officielle
-WORKDIR /home/pptruser/app
+# Copier les fichiers package.json
+COPY package*.json ./
 
-# Copie des packages avec les bons droits
-COPY --chown=pptruser:pptruser package*.json ./
+# Installer les dépendances Node.js (V3: production)
+RUN npm install --production
 
-# Installation propre sans chromium (plus rapide et sans erreurs)
-RUN npm install
+# Puppeteer télécharge automatiquement Chromium
+# Vérifier l'installation via npx
+RUN npx puppeteer browsers install chrome
 
-# Copie du reste du serveur
-COPY --chown=pptruser:pptruser . .
+# Copier tout le code source
+COPY . .
 
-# Exposition du port
-EXPOSE 3005
+# Exposer le port (Render assigne automatiquement le PORT)
+EXPOSE 3000
 
+# Démarrer le service
 CMD ["node", "server.js"]
