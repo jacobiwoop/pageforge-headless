@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const fs = require("fs");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
@@ -46,10 +47,20 @@ async function getBrowser() {
       "--disable-gpu",
       "--no-zygote",
     ],
-    executablePath:
-      process.env.PUPPETEER_EXECUTABLE_PATH ||
-      process.env.CHROME_PATH ||
-      undefined,
+    executablePath: (function () {
+      const paths = [
+        process.env.PUPPETEER_EXECUTABLE_PATH,
+        process.env.CHROME_PATH,
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+      ];
+      for (const p of paths) {
+        if (p && fs.existsSync(p)) return p;
+      }
+      return undefined;
+    })(),
     defaultViewport: { width: 1280, height: 900 },
   });
   BROWSER.on("disconnected", () => {
