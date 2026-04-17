@@ -156,16 +156,10 @@ app.get("/", (req, res) => {
     browser: "Puppeteer + Stealth Plugin",
     endpoints: [
       {
-        path: "/run",
+        path: "/screenshot",
         method: "POST",
-        description: "Exécuter un script (JSON)",
+        description: "Prendre une capture d'écran (URL/Fichier)",
       },
-      {
-        path: "/run-file",
-        method: "POST",
-        description: "Exécuter un fichier .js",
-      },
-      { path: "/health", method: "GET", description: "Vérifier le statut" },
     ],
   });
 });
@@ -212,8 +206,39 @@ app.post("/run-file", upload.single("file"), async (req, res) => {
 });
 
 // ------------------------------------
-// Exécution commune avec réutilisation
+// POST /screenshot : capture d'écran
 // ------------------------------------
+app.post("/screenshot", async (req, res) => {
+  const { url, viewport = { width: 1280, height: 800 } } = req.body || {};
+  if (!url) {
+    return res
+      .status(400)
+      .json({ status: "error", error: { message: "URL requise" } });
+  }
+
+  console.log(`[INFO] Capture d'écran demandée pour : ${url}`);
+
+  try {
+    const buffer = await withPage(async (page) => {
+      await page.setViewport(viewport);
+      // Pour les fichiers locaux (si le scraper a accès au FS ou via une URL http)
+      await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 });
+
+      // Petit délai pour laisser les animations se stabiliser
+      await new Promise((r) => setTimeout(r, 1000));
+
+      return await page.screenshot({ type: "png", fullPage: false });
+    });
+
+    res.set("Content-Type", "image/png");
+    res.send(buffer);
+  } catch (error) {
+    console.error("[ERROR Screenshot]", error);
+    res
+      .status(500)
+      .json({ status: "error", error: { message: error.message } });
+  }
+});
 async function executeScript(script, timeout, res) {
   console.log("[INFO] Exécution du script utilisateur...");
 
