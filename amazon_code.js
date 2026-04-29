@@ -6,10 +6,31 @@ console.log("[INFO] Démarrage du script Amazon...");
 try {
   console.log(`[INFO] Navigation vers : ${URL}`);
 
+  await page.setExtraHTTPHeaders({
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+    'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Cache-Control': 'max-age=0',
+    'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'document',
+    'sec-fetch-mode': 'navigate',
+    'sec-fetch-site': 'none',
+    'sec-fetch-user': '?1',
+    'upgrade-insecure-requests': '1'
+  });
+
   await page.goto(URL, {
-    waitUntil: "networkidle2",
+    waitUntil: "domcontentloaded",
     timeout: 60000,
   });
+
+  console.log("[INFO] Simulation d'interaction humaine...");
+  await page.mouse.move(100 + Math.random() * 100, 100 + Math.random() * 100);
+  await new Promise((r) => setTimeout(r, 1000 + Math.random() * 1000));
+  await page.evaluate(() => window.scrollBy(0, 300 + Math.random() * 400));
+  await page.mouse.move(300 + Math.random() * 200, 400 + Math.random() * 200);
+  await new Promise((r) => setTimeout(r, 1500 + Math.random() * 1000));
 
   // 1) DÉTECTION PAGE DE RECHERCHE VS PAGE PRODUIT
   // Attendre un peu plus que le DOM soit peuplé
